@@ -1,7 +1,9 @@
 import { OpenAPIHono } from '@hono/zod-openapi';
 import { swaggerUI } from '@hono/swagger-ui';
+import { cors } from 'hono/cors';
 import type { PrismaClient } from '@/generated/prisma/client.js';
 import { auth } from '@/common/auth.js';
+import { authMiddleware } from '@/middlewares/jwt.middleware.js';
 import listRouter from './lists.js';
 
 type AppVariables = {
@@ -10,19 +12,27 @@ type AppVariables = {
   session: typeof auth.$Infer.Session.session | null;
 };
 
-const routes = new OpenAPIHono<{ Variables: AppVariables }>();
+const app = new OpenAPIHono<{ Variables: AppVariables }>();
 
-// --- Rotas da API ---
-routes.route('/api/lists', listRouter);
+app.get('/', (c) => c.json({ message: 'Listinha API up and running!' }));
 
-// --- Rotas de Autenticação ---
-routes.on(['POST', 'GET'], '/api/auth/*', (c) => auth.handler(c.req.raw));
-routes.get('/api/auth/session', (c) => {
-  const user = c.get('user');
-  if (!user) return c.json({ error: 'Unauthorized' }, 401);
-  return c.json(c.get('session'));
-});
-routes.post('/api/register', async (c) => {
+app.use('/api/auth/*', cors({
+  origin: ['http://localhost:8081', 'exp://*', 'http://192.168.100.68:8081'],
+  allowHeaders: ['Content-Type', 'Authorization'],
+  allowMethods: ['POST', 'GET', 'OPTIONS'],
+  credentials: true,
+}));
+
+app.use('/api/register', cors({
+  origin: ['http://localhost:8081', 'exp://*', 'http://192.168.100.68:8081'],
+  allowHeaders: ['Content-Type', 'Authorization'],
+  allowMethods: ['POST', 'OPTIONS'],
+  credentials: true,
+}));
+
+app.on(['POST', 'GET'], '/api/auth/*', (c) => auth.handler(c.req.raw));
+
+app.post('/api/register', async (c) => {
   const { email, password } = await c.req.json();
   if (!email || !password) return c.json({ error: 'Email and password are required' }, 400);
   try {
@@ -32,10 +42,21 @@ routes.post('/api/register', async (c) => {
   }
 });
 
-// --- Documentação OpenAPI ---
-routes.get('/swagger', swaggerUI({ url: '/docs' }));
+const api = new OpenAPIHono<{ Variables: AppVariables }>();
 
-routes.doc('/docs', {
+api.use('*', authMiddleware);
+
+api.get('/auth/session', (c) => {
+  const user = c.get('user');
+  if (!user) return c.json({ error: 'Unauthorized' }, 401);
+  return c.json(c.get('session'));
+});
+
+api.route('/lists', listRouter);
+
+app.route('/api', api);
+
+app.doc('/docs', {
   openapi: '3.0.0',
   info: {
     version: '1.0.0',
@@ -50,4 +71,6 @@ routes.doc('/docs', {
   ],
 });
 
-export default routes;
+app.get('/swagger', swaggerUI({ url: '/docs' }));
+
+export default app;

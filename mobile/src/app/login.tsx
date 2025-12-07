@@ -1,5 +1,6 @@
 import { useState } from 'react';
-import { View, Text, TextInput, TouchableOpacity, StyleSheet, Image, Alert, ActivityIndicator } from 'react-native';
+import { View, Text, TextInput, TouchableOpacity, Image, Alert, ActivityIndicator, KeyboardAvoidingView, Platform } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
 import { useAuth } from '@/hooks/useAuth';
 import { authService } from '@/infra/services';
@@ -26,111 +27,44 @@ export default function LoginScreen() {
   };
 
   return (
-    <View style={styles.container}>
-      <Image source={require('@/assets/images/icon.png')} style={styles.logo} />
-      <Text style={styles.title}>login</Text>
+    <SafeAreaView className="flex-1 bg-[#FFF0E5]">
+      <KeyboardAvoidingView
+        behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+        className="flex-1 items-center justify-center p-5"
+      >
+        <Image source={require('../../assets/logo.png')} className="w-24 h-24 mb-10 rounded-xl" />
+        <Text className="text-3xl font-bold mb-10 text-gray-800">login</Text>
 
-      <TextInput
-        style={styles.input}
-        placeholder="rodrigoa0987@gmail.com"
-        placeholderTextColor="#A9A9A9"
-        value={email}
-        onChangeText={setEmail}
-        keyboardType="email-address"
-        autoCapitalize="none"
-      />
-      <TextInput
-        style={styles.input}
-        placeholder="************"
-        placeholderTextColor="#A9A9A9"
-        value={password}
-        onChangeText={setPassword}
-        secureTextEntry
-      />
+        <TextInput
+          className="w-full bg-gray-200 rounded-lg p-4 mb-4 "
+          placeholder="rodrigoa0987@gmail.com"
+          placeholderTextColor="#A9A9A9"
+          value={email}
+          onChangeText={setEmail}
+          keyboardType="email-address"
+          autoCapitalize="none"
+        />
+        <TextInput
+          className="w-full bg-gray-200 rounded-lg p-4 mb-4 "
+          placeholder="************"
+          placeholderTextColor="#A9A9A9"
+          value={password}
+          onChangeText={setPassword}
+          secureTextEntry
+        />
 
-      <TouchableOpacity style={styles.button} onPress={handleLogin} disabled={loading}>
-        {loading ? <ActivityIndicator color="#fff" /> : <Text style={styles.buttonText}>Entrar</Text>}
-      </TouchableOpacity>
-
-      <View style={styles.signupContainer}>
-        <Text style={styles.signupText}>Não tem conta? </Text>
-        <TouchableOpacity onPress={() => router.push('/register')}>
-          <Text style={[styles.signupText, styles.signupLink]}>criar conta</Text>
+        <TouchableOpacity className="w-full bg-red-500 rounded-lg p-4 items-center" onPress={handleLogin} disabled={loading}>
+          {loading ? <ActivityIndicator color="#fff" /> : <Text className="text-white text-lg font-bold">Entrar</Text>}
         </TouchableOpacity>
-      </View>
 
-      <TouchableOpacity style={styles.outlineButton}>
-        <Text style={styles.outlineButtonText}>Entrar Sem Login</Text>
-      </TouchableOpacity>
-    </View>
+        <View className="flex-row mt-5">
+          <Text className=" text-gray-800">Não tem conta? </Text>
+          <TouchableOpacity onPress={() => router.push('/register')}>
+            <Text className=" text-red-500 font-bold">Criar conta</Text>
+          </TouchableOpacity>
+        </View>
+      </KeyboardAvoidingView>
+    </SafeAreaView>
   );
 }
-
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: '#FFF0E5',
-    alignItems: 'center',
-    justifyContent: 'center',
-    padding: 20,
-  },
-  logo: {
-    width: 100,
-    height: 100,
-    marginBottom: 40,
-  },
-  title: {
-    fontSize: 32,
-    fontWeight: 'bold',
-    marginBottom: 40,
-    color: '#333',
-  },
-  input: {
-    width: '100%',
-    backgroundColor: '#EAEAEA',
-    borderRadius: 8,
-    padding: 15,
-    marginBottom: 15,
-    fontSize: 16,
-  },
-  button: {
-    width: '100%',
-    backgroundColor: '#FF6347',
-    borderRadius: 8,
-    padding: 15,
-    alignItems: 'center',
-  },
-  buttonText: {
-    color: '#fff',
-    fontSize: 18,
-    fontWeight: 'bold',
-  },
-  signupContainer: {
-    flexDirection: 'row',
-    marginTop: 20,
-  },
-  signupText: {
-    fontSize: 16,
-    color: '#333',
-  },
-  signupLink: {
-    color: '#FF6347',
-    fontWeight: 'bold',
-  },
-  outlineButton: {
-    width: '100%',
-    backgroundColor: 'transparent',
-    borderRadius: 8,
-    padding: 15,
-    alignItems: 'center',
-    borderWidth: 1,
-    borderColor: '#333',
-    marginTop: 20,
-  },
-  outlineButtonText: {
-    color: '#333',
-    fontSize: 18,
-    fontWeight: 'bold',
-  },
-});
 

@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { View, Text, TextInput, TouchableOpacity, StyleSheet, FlatList, Alert, ActivityIndicator } from 'react-native';
+import { View, Text, TextInput, TouchableOpacity, FlatList, Alert, ActivityIndicator } from 'react-native';
 import { useLocalSearchParams, useRouter, Stack } from 'expo-router';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { listService } from '@/infra/services';
@@ -50,20 +50,20 @@ export default function ListScreen() {
   const totalSpent = list?.items.reduce((acc, item) => acc + item.value * item.quantity, 0) ?? 0;
 
   if (isLoading) {
-    return <ActivityIndicator style={{ flex: 1 }} size="large" color="#FF6347" />;
+    return <ActivityIndicator className="flex-1" size="large" color="#FF6347" />;
   }
 
   if (isError || !list) {
-    return <Text style={styles.errorText}>Erro ao carregar a lista.</Text>;
+    return <Text className="flex-1 text-center self-center text-lg text-red-500">Erro ao carregar a lista.</Text>;
   }
 
   return (
-    <View style={styles.container}>
+    <View className="flex-1 bg-[#FFF0E5] p-2">
       <Stack.Screen options={{ title: 'Lista de Compras', headerBackTitle: 'Voltar' }} />
-      <View style={styles.formContainer}>
-        <TextInput style={[styles.input, styles.qtyInput]} value={newItemQty} onChangeText={setNewItemQty} keyboardType="numeric" />
-        <TextInput style={[styles.input, styles.nameInput]} placeholder="Nome do item" value={newItemName} onChangeText={setNewItemName} />
-        <TextInput style={[styles.input, styles.valueInput]} placeholder="Valor" value={newItemValue} onChangeText={setNewItemValue} keyboardType="numeric" />
+      <View className="flex-row items-center mb-2 gap-1">
+        <TextInput className="bg-white p-2 rounded border border-gray-300 flex-1" value={newItemQty} onChangeText={setNewItemQty} keyboardType="numeric" />
+        <TextInput className="bg-white p-2 rounded border border-gray-300 flex-4" placeholder="Nome do item" value={newItemName} onChangeText={setNewItemName} />
+        <TextInput className="bg-white p-2 rounded border border-gray-300 flex-2" placeholder="Valor" value={newItemValue} onChangeText={setNewItemValue} keyboardType="numeric" />
         <TouchableOpacity onPress={handleAddItem} disabled={addItemMutation.isPending}>
           <Ionicons name="add-circle" size={32} color="#FF6347" />
         </TouchableOpacity>
@@ -73,40 +73,24 @@ export default function ListScreen() {
         data={list.items}
         keyExtractor={(item) => item.id}
         renderItem={({ item }) => (
-          <View style={styles.itemContainer}>
+          <View className="flex-row justify-between items-center p-4 bg-white rounded-md mb-2">
             <Text>{item.quantity}x</Text>
-            <Text style={styles.itemName}>{item.name}</Text>
+            <Text className="flex-1 ml-2">{item.name}</Text>
             <Text>{(item.value * item.quantity).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })}</Text>
-            <TouchableOpacity onPress={() => deleteItemMutation.mutate(item.id)}>
+            <TouchableOpacity onPress={() => deleteItemMutation.mutate(item.id)} className="ml-2">
               <Ionicons name="trash-bin-outline" size={24} color="#FF6347" />
             </TouchableOpacity>
           </View>
         )}
-        style={{ width: '100%' }}
+        className="w-full"
       />
 
-      <View style={styles.footer}>
-        <Text style={styles.footerText}>{totalSpent.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })} / {list.budget.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })}</Text>
-        <TouchableOpacity style={styles.finishButton} onPress={() => router.push(`/report/${id}`)}>
-          <Text style={styles.finishButtonText}>Finalizar lista</Text>
+      <View className="flex-row justify-between items-center p-4 border-t border-gray-300 bg-[#FFF0E5]">
+        <Text className="text-lg font-bold">{totalSpent.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })} / {list.budget.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })}</Text>
+        <TouchableOpacity className="bg-red-500 py-2 px-4 rounded-md" onPress={() => router.push(`/report/${id}`)}>
+          <Text className="text-white font-bold">Finalizar lista</Text>
         </TouchableOpacity>
       </View>
     </View>
   );
 }
-
-const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: '#FFF0E5', padding: 10 },
-  errorText: { flex: 1, textAlign: 'center', textAlignVertical: 'center', fontSize: 18, color: 'red' },
-  formContainer: { flexDirection: 'row', alignItems: 'center', marginBottom: 10, gap: 5 },
-  input: { backgroundColor: '#fff', padding: 10, borderRadius: 5, borderWidth: 1, borderColor: '#ddd' },
-  qtyInput: { flex: 1 },
-  nameInput: { flex: 4 },
-  valueInput: { flex: 2 },
-  itemContainer: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', padding: 15, backgroundColor: '#fff', borderRadius: 5, marginBottom: 10 },
-  itemName: { flex: 1, marginLeft: 10 },
-  footer: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', padding: 15, borderTopWidth: 1, borderColor: '#ddd', backgroundColor: '#FFF0E5' },
-  footerText: { fontSize: 18, fontWeight: 'bold' },
-  finishButton: { backgroundColor: '#FF6347', paddingVertical: 10, paddingHorizontal: 20, borderRadius: 5 },
-  finishButtonText: { color: '#fff', fontWeight: 'bold', fontSize: 16 },
-});

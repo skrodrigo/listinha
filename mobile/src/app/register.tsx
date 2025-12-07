@@ -1,18 +1,23 @@
 import { useState } from 'react';
-import { View, Text, TextInput, TouchableOpacity, StyleSheet, Alert } from 'react-native';
+import { View, Text, TextInput, TouchableOpacity, Alert, Image, KeyboardAvoidingView, Platform } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
+import { useAuth } from '@/hooks/useAuth';
 import { authService } from '@/infra/services';
 
 export default function RegisterScreen() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const router = useRouter();
+  const { signIn } = useAuth();
 
   const handleRegister = async () => {
     try {
       await authService.register(email, password);
-      Alert.alert('Success', 'Account created successfully! Please log in.');
-      router.replace('/login');
+      // Loga automaticamente após o registro
+      await authService.login(email, password);
+      await signIn(); // Atualiza o estado de autenticação global
+      router.replace('/(tabs)/newList'); // Redireciona para a tela principal
     } catch (error: any) {
       console.error('Registration failed:', error);
       const errorMessage = error.response?.data?.error || 'An unexpected error occurred.';
@@ -21,77 +26,43 @@ export default function RegisterScreen() {
   };
 
   return (
-    <View style={styles.container}>
-      <Text style={styles.title}>Criar Conta</Text>
+    <SafeAreaView className="flex-1 bg-[#FFF0E5]">
+      <KeyboardAvoidingView
+        behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+        className="flex-1 items-center justify-center p-5"
+      >
+        <Image source={require('../../assets/logo.png')} className="w-24 h-24 mb-10 rounded-xl" />
+        <Text className="text-3xl font-bold mb-10 text-gray-800">Criar Conta</Text>
 
-      <TextInput
-        style={styles.input}
-        placeholder="Email"
-        placeholderTextColor="#A9A9A9"
-        value={email}
-        onChangeText={setEmail}
-        keyboardType="email-address"
-        autoCapitalize="none"
-      />
-      <TextInput
-        style={styles.input}
-        placeholder="Senha"
-        placeholderTextColor="#A9A9A9"
-        value={password}
-        onChangeText={setPassword}
-        secureTextEntry
-      />
+        <TextInput
+          className="w-full bg-gray-200 rounded-lg p-4 mb-4 "
+          placeholder="Email"
+          placeholderTextColor="#A9A9A9"
+          value={email}
+          onChangeText={setEmail}
+          keyboardType="email-address"
+          autoCapitalize="none"
+        />
+        <TextInput
+          className="w-full bg-gray-200 rounded-lg p-4 mb-4 "
+          placeholder="Senha"
+          placeholderTextColor="#A9A9A9"
+          value={password}
+          onChangeText={setPassword}
+          secureTextEntry
+        />
 
-      <TouchableOpacity style={styles.button} onPress={handleRegister}>
-        <Text style={styles.buttonText}>Criar Conta</Text>
-      </TouchableOpacity>
+        <TouchableOpacity className="w-full bg-red-500 rounded-lg p-4 items-center mt-2" onPress={handleRegister}>
+          <Text className="text-white text-lg font-bold">Criar Conta</Text>
+        </TouchableOpacity>
 
-      <TouchableOpacity onPress={() => router.back()}>
-        <Text style={styles.loginLink}>Já tem uma conta? Entrar</Text>
-      </TouchableOpacity>
-    </View>
+        <View className="flex-row mt-5">
+          <Text className=" text-gray-800">Já tem conta? </Text>
+          <TouchableOpacity onPress={() => router.push('/login')}>
+            <Text className=" text-red-500 font-bold">Entrar</Text>
+          </TouchableOpacity>
+        </View>
+      </KeyboardAvoidingView>
+    </SafeAreaView>
   );
 }
-
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: '#FFF0E5',
-    alignItems: 'center',
-    justifyContent: 'center',
-    padding: 20,
-  },
-  title: {
-    fontSize: 32,
-    fontWeight: 'bold',
-    marginBottom: 40,
-    color: '#333',
-  },
-  input: {
-    width: '100%',
-    backgroundColor: '#EAEAEA',
-    borderRadius: 8,
-    padding: 15,
-    marginBottom: 15,
-    fontSize: 16,
-  },
-  button: {
-    width: '100%',
-    backgroundColor: '#FF6347',
-    borderRadius: 8,
-    padding: 15,
-    alignItems: 'center',
-    marginTop: 10,
-  },
-  buttonText: {
-    color: '#fff',
-    fontSize: 18,
-    fontWeight: 'bold',
-  },
-  loginLink: {
-    marginTop: 20,
-    color: '#FF6347',
-    fontSize: 16,
-    fontWeight: 'bold',
-  },
-});

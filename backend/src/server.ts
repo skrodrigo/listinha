@@ -19,18 +19,17 @@ type AppVariables = {
 
 const app = new Hono<{ Variables: AppVariables }>();
 
-// Middlewares
+// Middlewares Globais
 app.onError(errorHandler);
 app.use('*', withPrisma);
-app.use('*', authMiddleware);
-app.use('/api/*', cors({
+app.use('*', cors({
   origin: ['http://localhost:8081', 'exp://*'],
   allowHeaders: ['Content-Type', 'Authorization'],
   allowMethods: ['POST', 'GET', 'PATCH', 'DELETE', 'OPTIONS'],
   credentials: true,
 }));
 
-// Rotas
+// Monta todas as rotas
 app.route('/', routes);
 
 const port = parseInt(env.PORT, 10);

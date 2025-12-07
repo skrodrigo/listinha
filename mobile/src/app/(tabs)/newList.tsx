@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { View, Text, TextInput, TouchableOpacity, StyleSheet, Alert, ActivityIndicator } from 'react-native';
+import { View, Text, TextInput, TouchableOpacity, Alert, ActivityIndicator } from 'react-native';
 import { useRouter } from 'expo-router';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { listService } from '@/infra/services';
@@ -41,11 +41,11 @@ export default function NewListScreen() {
   };
 
   return (
-    <View style={styles.container}>
-      <Text style={styles.title}>Qual o seu orçamento?</Text>
+    <View className="flex-1 bg-[#FFF0E5] items-center justify-center p-5">
+      <Text className="text-3xl font-bold mb-10 text-gray-800 text-center">Qual o seu orçamento?</Text>
 
       <TextInput
-        style={styles.input}
+        className="w-full bg-gray-200 rounded-lg p-5 mb-5 text-2xl text-center font-bold"
         placeholder="R$ 0,00"
         placeholderTextColor="#A9A9A9"
         value={formatCurrency(budget)}
@@ -53,52 +53,13 @@ export default function NewListScreen() {
         keyboardType="numeric"
       />
 
-      <TouchableOpacity style={styles.button} onPress={handleStartList} disabled={isPending}>
+      <TouchableOpacity className="w-full bg-red-500 rounded-lg p-4 items-center" onPress={handleStartList} disabled={isPending}>
         {isPending ? (
           <ActivityIndicator color="#fff" />
         ) : (
-          <Text style={styles.buttonText}>Iniciar Lista de Compras →</Text>
+          <Text className="text-white text-lg font-bold">Iniciar Lista de Compras →</Text>
         )}
       </TouchableOpacity>
     </View>
   );
 }
-
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: '#FFF0E5',
-    alignItems: 'center',
-    justifyContent: 'center',
-    padding: 20,
-  },
-  title: {
-    fontSize: 28,
-    fontWeight: 'bold',
-    marginBottom: 40,
-    color: '#333',
-    textAlign: 'center',
-  },
-  input: {
-    width: '100%',
-    backgroundColor: '#EAEAEA',
-    borderRadius: 8,
-    padding: 20,
-    marginBottom: 20,
-    fontSize: 24,
-    textAlign: 'center',
-    fontWeight: 'bold',
-  },
-  button: {
-    width: '100%',
-    backgroundColor: '#FF6347',
-    borderRadius: 8,
-    padding: 15,
-    alignItems: 'center',
-  },
-  buttonText: {
-    color: '#fff',
-    fontSize: 18,
-    fontWeight: 'bold',
-  },
-});
