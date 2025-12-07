@@ -15,14 +15,16 @@ const app = new OpenAPIHono<{ Variables: AppVariables }>();
 
 app.get('/', (c) => c.json({ message: 'Listinha API up and running!' }));
 
-// Roteador para endpoints autenticados
-const api = new OpenAPIHono<{ Variables: AppVariables }>();
-api.use('*', authMiddleware);
-api.route('/lists', listRouter);
+// Rotas públicas de autenticação
+app.route('/api/auth', authRouter);
 
-// Monta os roteadores no app principal
-app.route('/api', api); // Monta as rotas protegidas
-app.route('/api/auth', authRouter); // Monta as rotas de autenticação
+// Rotas protegidas
+const protectedApi = new OpenAPIHono<{ Variables: AppVariables }>();
+protectedApi.use('*', authMiddleware);
+protectedApi.route('/lists', listRouter);
+
+// Monta o roteador protegido
+app.route('/api', protectedApi);
 
 app.doc('/docs', {
   openapi: '3.0.0',

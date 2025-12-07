@@ -14,7 +14,6 @@ export function errorHandler(error: Error, c: Context) {
     );
   }
 
-  console.error('Unhandled error:', error);
 
   return c.json(
     {

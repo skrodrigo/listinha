@@ -1,70 +1,82 @@
-# 🛒 Listinha - Shopping List Manager
+# 🛒 Listinha - Gerenciador de Listas de Compras
 
-Um aplicativo mobile completo para gerenciar listas de compras com orçamento, histórico e relatórios. Desenvolvido com **React Native**, **Hono**, **Prisma** e **Better Auth**.
+Um aplicativo mobile completo para gerenciar listas de compras com orçamento, construído com um backend moderno e uma arquitetura limpa.
 
 ---
 
 ## 📋 Índice
 
-- [Visão Geral](#visão-geral)
-- [Arquitetura](#arquitetura)
-- [Pré-requisitos](#pré-requisitos)
-- [Instalação](#instalação)
-- [Desenvolvimento](#desenvolvimento)
-- [Deploy na Vercel](#deploy-na-vercel)
-- [Estrutura do Projeto](#estrutura-do-projeto)
-- [API Endpoints](#api-endpoints)
-- [Tecnologias](#tecnologias)
+- [Visão Geral](#-visão-geral)
+- [Tecnologias](#-tecnologias)
+- [Arquitetura do Backend](#-arquitetura-do-backend)
+- [Pré-requisitos](#-pré-requisitos)
+- [Como Executar](#-como-executar)
+- [Scripts Disponíveis](#-scripts-disponíveis)
 
 ---
 
 ## 🎯 Visão Geral
 
-**Listinha** é um aplicativo que permite:
+**Listinha** é um monorepo contendo:
 
-- ✅ **Criar listas de compras** com orçamento definido
-- ✅ **Adicionar itens** com quantidade e valor
-- ✅ **Acompanhar gastos** em tempo real
-- ✅ **Visualizar histórico** de compras anteriores
-- ✅ **Gerar relatórios** com resumo de gastos
-- ✅ **Autenticação segura** com email e senha
-- ✅ **Sincronização** entre dispositivos
+-   **`backend`**: Uma API RESTful construída com **Hono** e **Prisma**, seguindo princípios de Clean Architecture. Fornece endpoints para autenticação de usuários e gerenciamento completo de listas de compras.
+-   **`mobile`**: Um aplicativo **React Native** (com Expo) que consome a API do backend, oferecendo uma interface de usuário intuitiva para gerenciar as listas.
+
+### Funcionalidades
+
+- ✅ Autenticação segura de usuários com **JWT**.
+- ✅ Criação, visualização, atualização e exclusão de listas de compras com orçamento.
+- ✅ Adição, edição e remoção de itens nas listas.
+- ✅ Documentação de API automática com **Swagger UI**.
 
 ---
 
-## 🏗️ Arquitetura
+## 🛠️ Tecnologias
+
+| Categoria         | Tecnologia                               |
+| ----------------- | ---------------------------------------- |
+| **Backend**       | Hono, Node.js, TypeScript, Prisma, PostgreSQL, Zod, JWT, bcrypt |
+| **Mobile**        | React Native, Expo, TypeScript, NativeWind, TanStack Query |
+| **Banco de Dados**  | PostgreSQL                               |
+| **DevOps**        | Docker, Vercel (sugerido)                |
+
+---
+
+## 🏗️ Arquitetura do Backend
+
+O backend segue uma arquitetura em camadas para garantir a separação de responsabilidades e a manutenibilidade.
+
+-   **`routes/`**: Define os endpoints da API, valida as requisições com Zod e chama os serviços. É a camada de entrada HTTP.
+-   **`services/`**: Contém a lógica de negócio principal. Orquestra as chamadas aos repositórios e não conhece nada sobre HTTP.
+-   **`repositories/`**: Camada de acesso a dados. É a única que interage diretamente com o Prisma para consultas ao banco de dados.
+-   **`middlewares/`**: Middlewares do Hono, como o `auth.middleware.ts` que valida os tokens JWT.
+-   **`dtos/`**: Data Transfer Objects. Contém os schemas Zod para validação e os tipos TypeScript inferidos.
+-   **`common/`**: Utilitários compartilhados, como a configuração do Prisma e a validação de variáveis de ambiente.
 
 ```
-Listinha/
-├── backend/                    # Servidor Hono + Prisma
-│   ├── src/
-│   │   ├── api/               # Módulos da API (rotas, controllers, DTOs)
-│   │   ├── common/            # Utilitários (env, logger, prisma)
-│   │   ├── middlewares/       # Middlewares (auth, error-handler)
-│   │   ├── models/            # Schemas e tipos de dados (Zod)
-│   │   ├── services/          # Lógica de negócio
-│   │   └── server.ts          # Ponto de entrada da aplicação
-│   ├── prisma/
-│   │   └── schema.prisma      # Schema do banco de dados
-│   └── package.json
-│
-└── mobile/                     # App React Native (Expo)
-    # ... (estrutura do mobile)
+backend/src/
+├── common/         # Configs (env, prisma)
+├── dtos/           # Schemas de validação (Zod)
+├── middlewares/    # Middlewares (auth, error)
+├── repositories/   # Acesso a dados (Prisma)
+├── routes/         # Definição de rotas (Hono)
+├── services/       # Lógica de negócio
+└── server.ts       # Ponto de entrada do servidor
 ```
 
 ---
 
 ## 📦 Pré-requisitos
 
-- **Node.js** (v18 ou superior)
-- **npm** ou **yarn**
-- **Vercel CLI** (para deploy)
+-   **Node.js** (v18 ou superior)
+-   **npm** ou **yarn**
+-   **Docker** e **Docker Compose** (para o banco de dados PostgreSQL)
 
 ---
 
-## 🚀 Instalação e Desenvolvimento
+## 🚀 Como Executar
 
-### Backend
+### 1. Backend
 
 1.  **Navegue até a pasta do backend:**
     ```bash
@@ -77,78 +89,61 @@ Listinha/
     ```
 
 3.  **Configure as variáveis de ambiente:**
-    Copie `.env.example` para `.env` e preencha os valores.
+    Copie o arquivo `.env.example` para `.env` e preencha os valores. O `JWT_SECRET` pode ser gerado com o comando `node -e "console.log(require('crypto').randomBytes(32).toString('base64'))"`.
     ```bash
     cp .env.example .env
     ```
 
-4.  **Execute as migrations do banco de dados:**
+4.  **Inicie o banco de dados com Docker:**
+    ```bash
+    npm run db:up
+    ```
+
+5.  **Execute as migrations do Prisma:**
+    Isso criará as tabelas no seu banco de dados.
     ```bash
     npm run db:migrate
     ```
 
-5.  **Inicie o servidor de desenvolvimento:**
+6.  **Inicie o servidor de desenvolvimento:**
     ```bash
     npm run dev
     ```
-    O servidor estará disponível em `http://localhost:3000`.
-    A documentação Swagger estará em `http://localhost:3000/swagger`.
 
-### Mobile
+O servidor estará disponível em `http://localhost:3000`.
+A documentação da API (Swagger UI) estará em `http://localhost:3000/swagger`.
 
-(Instruções para o mobile permanecem as mesmas)
+### 2. Mobile
 
----
+1.  **Navegue até a pasta do mobile:**
+    ```bash
+    cd mobile
+    ```
 
-## ☁️ Deploy na Vercel
+2.  **Instale as dependências:**
+    ```bash
+    npm install
+    ```
 
-Este projeto está configurado para deploy na **Vercel** usando o **Node.js Runtime**.
+3.  **Atualize o IP do Backend:**
+    No arquivo `src/infra/api.ts`, certifique-se de que o `baseURL` aponta para o endereço IP da sua máquina na rede local (ex: `http://192.168.1.10:3000`).
 
-### 1. Configuração do Projeto na Vercel
+4.  **Inicie o Expo:**
+    ```bash
+    npm start
+    ```
 
-- **Framework Preset:** `Other`
-- **Build Command:** `cd backend && npm install && npm run build`
-- **Start Command:** `cd backend && npm start`
-- **Output Directory:** `backend/dist`
-- **Install Command:** `npm install --prefix=backend`
-
-### 2. Scripts de Deploy
-
-O `package.json` do backend inclui os seguintes scripts para produção:
-
--   `"build": "tsc && tsc -p tsconfig.build.json"`: Compila o código TypeScript para JavaScript.
--   `"start": "NODE_ENV=production node dist/server.js"`: Inicia o servidor em modo de produção.
--   `"db:migrate:prod": "prisma migrate deploy"`: Aplica as migrations em um ambiente de produção.
-
-### 3. Arquivo `vercel.json`
-
-Para garantir que o Hono funcione corretamente na Vercel, crie um arquivo `vercel.json` na raiz do projeto com o seguinte conteúdo:
-
-```json
-{
-  "rewrites": [
-    { "source": "/(.*)", "destination": "/backend/dist/server.js" }
-  ]
-}
-```
+5.  Escaneie o QR code com o aplicativo **Expo Go** no seu celular.
 
 ---
 
-## 📁 Estrutura do Projeto (Detalhada)
+## 📜 Scripts Disponíveis (Backend)
 
-### Backend - `backend/src/`
+-   `npm run dev`: Inicia o servidor em modo de desenvolvimento com hot-reload.
+-   `npm run build`: Compila o código TypeScript para produção.
+-   `npm run start`: Inicia o servidor em modo de produção.
+-   `npm run db:up`: Inicia o container do PostgreSQL com Docker Compose.
+-   `npm run db:down`: Para o container do PostgreSQL.
+-   `npm run db:migrate`: Aplica as migrations do Prisma.
+-   `npm run db:studio`: Abre o Prisma Studio para visualizar e editar os dados.
 
--   **`api/`**: Contém os módulos de cada feature da API.
-    -   `*.routes.ts`: Define os endpoints, schemas de validação e anexa os controllers.
-    -   `*.controller.ts`: Orquestra as chamadas aos serviços e formata a resposta.
--   **`common/`**: Utilitários compartilhados.
-    -   `env.ts`: Validação e tipagem de variáveis de ambiente com Zod.
-    -   `prisma.ts`: Configuração do cliente Prisma.
--   **`middlewares/`**: Middlewares do Hono.
-    -   `auth.middleware.ts`: Valida a sessão do usuário.
-    -   `error-handler.middleware.ts`: Captura e formata erros.
--   **`models/`**: Schemas de dados (Zod) e tipos TypeScript.
--   **`services/`**: Lógica de negócio e acesso ao banco de dados.
--   **`server.ts`**: Ponto de entrada da aplicação, onde os middlewares e rotas são registrados.
-
-(O restante da estrutura e seções permanecem relevantes)

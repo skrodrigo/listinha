@@ -1,5 +1,6 @@
 import { useState } from 'react';
-import { View, Text, TextInput, TouchableOpacity, Alert, Image, KeyboardAvoidingView, Platform } from 'react-native';
+import { View, Text, TextInput, TouchableOpacity, Image, KeyboardAvoidingView, Platform } from 'react-native';
+import { toast } from 'sonner-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
 import { useAuth } from '@/hooks/useAuth';
@@ -19,9 +20,8 @@ export default function RegisterScreen() {
       await signIn(); // Atualiza o estado de autenticação global
       router.replace('/(tabs)/newList'); // Redireciona para a tela principal
     } catch (error: any) {
-      console.error('Registration failed:', error);
-      const errorMessage = error.response?.data?.error || 'An unexpected error occurred.';
-      Alert.alert('Registration Failed', errorMessage);
+      const errorMessage = error.response?.data?.message || 'Ocorreu um erro inesperado.';
+      toast.error('Falha no Cadastro', { description: errorMessage });
     }
   };
 

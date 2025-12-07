@@ -1,5 +1,6 @@
 import { useState } from 'react';
-import { View, Text, TextInput, TouchableOpacity, Alert, ActivityIndicator } from 'react-native';
+import { View, Text, TextInput, TouchableOpacity, ActivityIndicator } from 'react-native';
+import { toast } from 'sonner-native';
 import { useRouter } from 'expo-router';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { listService } from '@/infra/services';
@@ -18,16 +19,16 @@ export default function NewListScreen() {
       queryClient.invalidateQueries({ queryKey: ['lists'] });
       router.push(`/list/${data.id}`);
     },
-    onError: (error) => {
-      console.error('Failed to create list:', error);
-      Alert.alert('Erro', 'Não foi possível criar a lista.');
+    onError: (error: any) => {
+      const errorMessage = error.response?.data?.error || 'Não foi possível criar a lista.';
+      toast.error('Erro ao Criar Lista', { description: errorMessage });
     },
   });
 
   const handleStartList = () => {
     const budgetValue = parseFloat(budget.replace(/[^\d,]/g, '').replace(',', '.'));
     if (isNaN(budgetValue) || budgetValue <= 0) {
-      Alert.alert('Orçamento Inválido', 'Por favor, insira um valor de orçamento válido.');
+      toast.error('Orçamento Inválido', { description: 'Por favor, insira um valor de orçamento válido.' });
       return;
     }
     createList(budgetValue);

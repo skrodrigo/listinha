@@ -42,8 +42,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const signOut = async () => {
     try {
       await authService.logout();
-    } catch (error) {
-      console.error('Failed to logout on backend', error);
     } finally {
       setUser(null);
     }

@@ -1,12 +1,12 @@
-import { auth } from '@/common/auth.js';
-import type { RegisterData } from '@/dtos/auth.dto.js';
+import { prisma } from '@/common/prisma.js';
+import { Prisma, User } from '@/generated/prisma/client.js';
 
 export const authRepository = {
-  async createUser(data: RegisterData) {
-    const { email, password } = data;
-    return await auth.api.signUpEmail({
-      body: { email, password, name: email.split('@')[0] },
-      asResponse: true
-    });
+  async findUserByEmail(email: string): Promise<User | null> {
+    return prisma.user.findUnique({ where: { email } });
+  },
+
+  async createUser(data: Prisma.UserCreateInput): Promise<User> {
+    return prisma.user.create({ data });
   },
 };

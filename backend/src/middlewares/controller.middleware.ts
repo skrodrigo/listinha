@@ -21,7 +21,6 @@ export function controller<T extends Handler>(callback: T): T {
       if (error instanceof HTTPException) {
         throw error;
       }
-      console.error('Controller error:', error);
       throw new HTTPException(500, { message: 'INTERNAL_SERVER_ERROR' });
     }
   };

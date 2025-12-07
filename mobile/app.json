@@ -3,6 +3,7 @@
     "name": "listinha",
     "slug": "listinha",
     "version": "1.0.0",
+    "scheme": "listinha",
     "web": {
       "favicon": "./assets/favlogo.png"
     },
@@ -26,7 +27,7 @@
     },
     "android": {
       "adaptiveIcon": {
-        "foregroundImage": "./assets/adaptive-logo.png",
+        "foregroundImage": "./assets/adaptive-icon.png",
         "backgroundColor": "#ffffff"
       }
     }
