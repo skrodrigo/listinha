@@ -1,4 +1,4 @@
-import app from "@/routes/routes.js";
+import app from "@/routes/routes";
 
 export default {
   fetch: app.fetch,
