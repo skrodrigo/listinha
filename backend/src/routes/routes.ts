@@ -1,0 +1,44 @@
+import { OpenAPIHono } from '@hono/zod-openapi';
+import { swaggerUI } from '@hono/swagger-ui';
+import type { PrismaClient } from '@/generated/prisma/client.js';
+import { authMiddleware } from '@/middlewares/auth.middleware.js';
+import listRouter from './lists.routes.js';
+import authRouter from './auth.routes.js';
+import type { User } from '@/generated/prisma/client.js';
+
+export type AppVariables = {
+  prisma: PrismaClient;
+  user: Omit<User, 'password'> | null;
+};
+
+const app = new OpenAPIHono<{ Variables: AppVariables }>();
+
+app.get('/', (c) => c.json({ message: 'Listinha API up and running!' }));
+
+// Roteador para endpoints autenticados
+const api = new OpenAPIHono<{ Variables: AppVariables }>();
+api.use('*', authMiddleware);
+api.route('/lists', listRouter);
+
+// Monta os roteadores no app principal
+app.route('/api', api); // Monta as rotas protegidas
+app.route('/api/auth', authRouter); // Monta as rotas de autenticação
+
+app.doc('/docs', {
+  openapi: '3.0.0',
+  info: {
+    version: '1.0.0',
+    title: 'Listinha API',
+    description: 'API para gerenciar listas de compras com orçamento',
+  },
+  servers: [{ url: 'http://localhost:3000', description: 'Development' }],
+  tags: [
+    { name: 'Lists', description: 'Endpoints para listas de compras' },
+    { name: 'Items', description: 'Endpoints para itens da lista' },
+    { name: 'Auth', description: 'Endpoints de autenticação' },
+  ],
+});
+
+app.get('/swagger', swaggerUI({ url: '/docs' }));
+
+export default app;

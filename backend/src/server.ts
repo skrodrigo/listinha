@@ -7,9 +7,8 @@ import { auth } from '@/common/auth.js';
 import { withPrisma } from '@/common/prisma.js';
 import { env } from '@/common/env.js';
 import { errorHandler } from '@/middlewares/error-handler.middleware.js';
-import { authMiddleware } from '@/middlewares/jwt.middleware.js';
 
-import routes from './api/routes.js';
+import routes from './routes/routes.js';
 
 type AppVariables = {
   prisma: PrismaClient;

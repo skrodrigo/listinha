@@ -1,8 +1,10 @@
 import { OpenAPIHono, createRoute, z } from '@hono/zod-openapi';
-import { ListSchema, CreateListSchema, UpdateListSchema, ListItemSchema, CreateListItemSchema, UpdateListItemSchema, ErrorSchema } from '@/models/schemas.js';
-import * as c from './lists.controller.js';
+import { listService } from '@/services/list.service.js';
+import { ListSchema, CreateListSchema, UpdateListSchema, ListItemSchema, CreateListItemSchema, UpdateListItemSchema } from '@/dtos/lists.dto.js';
+import { ErrorSchema } from '@/dtos/errors.dto.js';
+import type { AppVariables } from './routes.js';
 
-const lists = new OpenAPIHono();
+const lists = new OpenAPIHono<{ Variables: AppVariables }>();
 
 const getListsRoute = createRoute({
   method: 'get',
@@ -56,11 +58,52 @@ const deleteListRoute = createRoute({
   },
 });
 
-lists.openapi(getListsRoute, c.getAllListsController);
-lists.openapi(createListRoute, c.createListController);
-lists.openapi(getListByIdRoute, c.getListByIdController);
-lists.openapi(updateListRoute, c.updateListController);
-lists.openapi(deleteListRoute, c.deleteListController);
+lists.openapi(getListsRoute, async (c) => {
+  const user = c.get('user');
+  const lists = await listService.getAllListsForUser(user!.id);
+  return c.json(lists, 200);
+});
+
+lists.openapi(createListRoute, async (c) => {
+  const user = c.get('user');
+  const body = c.req.valid('json');
+  const newList = await listService.createList(user!.id, body);
+  return c.json(newList, 201);
+});
+
+lists.openapi(getListByIdRoute, async (c) => {
+  const user = c.get('user');
+  const { id } = c.req.param();
+  try {
+    const list = await listService.getListById(user!.id, id);
+    return c.json(list, 200);
+  } catch (error: any) {
+    return c.json({ error: error.message }, 404);
+  }
+});
+
+lists.openapi(updateListRoute, async (c) => {
+  const user = c.get('user');
+  const { id } = c.req.param();
+  const body = c.req.valid('json');
+  try {
+    const updatedList = await listService.updateList(user!.id, id, body);
+    return c.json(updatedList, 200);
+  } catch (error: any) {
+    return c.json({ error: error.message }, 404);
+  }
+});
+
+lists.openapi(deleteListRoute, async (c) => {
+  const user = c.get('user');
+  const { id } = c.req.param();
+  try {
+    await listService.deleteList(user!.id, id);
+    return c.json({ success: true }, 200);
+  } catch (error: any) {
+    return c.json({ error: error.message }, 404);
+  }
+});
 
 const addItemRoute = createRoute({
   method: 'post',
@@ -95,8 +138,39 @@ const deleteItemRoute = createRoute({
   },
 });
 
-lists.openapi(addItemRoute, c.addItemController);
-lists.openapi(updateItemRoute, c.updateItemController);
-lists.openapi(deleteItemRoute, c.deleteItemController);
+lists.openapi(addItemRoute, async (c) => {
+  const user = c.get('user');
+  const { id: listId } = c.req.param();
+  const body = c.req.valid('json');
+  try {
+    const newItem = await listService.addItemToList(user!.id, listId, body);
+    return c.json(newItem, 201);
+  } catch (error: any) {
+    return c.json({ error: error.message }, 404);
+  }
+});
+
+lists.openapi(updateItemRoute, async (c) => {
+  const user = c.get('user');
+  const { listId, itemId } = c.req.param();
+  const body = c.req.valid('json');
+  try {
+    const updatedItem = await listService.updateListItem(user!.id, listId, itemId, body);
+    return c.json(updatedItem, 200);
+  } catch (error: any) {
+    return c.json({ error: error.message }, 404);
+  }
+});
+
+lists.openapi(deleteItemRoute, async (c) => {
+  const user = c.get('user');
+  const { listId, itemId } = c.req.param();
+  try {
+    await listService.deleteListItem(user!.id, listId, itemId);
+    return c.json({ success: true }, 200);
+  } catch (error: any) {
+    return c.json({ error: error.message }, 404);
+  }
+});
 
 export default lists;

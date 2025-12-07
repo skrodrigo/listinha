@@ -20,6 +20,6 @@ export const authService = {
   },
 
   async login(email: string, password: string): Promise<void> {
-    await api.post('/api/auth/callback/credentials', { email, password });
+    await api.post('/api/auth/sign-in/email', { email, password });
   },
 };

@@ -1,12 +1,5 @@
 import { z } from '@hono/zod-openapi';
 
-export const UserSchema = z
-  .object({
-    id: z.string().openapi({ example: '123' }),
-    email: z.string().email().openapi({ example: 'user@example.com' }),
-  })
-  .openapi('User');
-
 export const ListSchema = z
   .object({
     id: z.string().openapi({ example: '1' }),
@@ -61,8 +54,7 @@ export const UpdateListItemSchema = z
   })
   .openapi('UpdateListItem');
 
-export const ErrorSchema = z
-  .object({
-    error: z.string().openapi({ example: 'Unauthorized' }),
-  })
-  .openapi('Error');
+export type CreateListData = z.infer<typeof CreateListSchema>;
+export type UpdateListData = z.infer<typeof UpdateListSchema>;
+export type CreateListItemData = z.infer<typeof CreateListItemSchema>;
+export type UpdateListItemData = z.infer<typeof UpdateListItemSchema>;
