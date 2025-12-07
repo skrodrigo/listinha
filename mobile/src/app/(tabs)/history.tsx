@@ -1,6 +1,6 @@
 import { View, Text, FlatList, TouchableOpacity, StyleSheet, ActivityIndicator } from 'react-native';
 import { useQuery } from '@tanstack/react-query';
-import { api } from '@/infra/api';
+import { listService } from '@/infra/services';
 import { List } from '@/types';
 import { useRouter } from 'expo-router';
 
@@ -8,7 +8,7 @@ export default function HistoryScreen() {
   const router = useRouter();
   const { data: lists, isLoading, isError } = useQuery<List[]>({
     queryKey: ['lists'],
-    queryFn: () => api.get('/api/lists'),
+    queryFn: () => listService.getAll(),
   });
 
   if (isLoading) {

@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { View, Text, TextInput, TouchableOpacity, StyleSheet, Alert } from 'react-native';
 import { useRouter } from 'expo-router';
-import { api } from '@/infra/api';
+import { authService } from '@/infra/services';
 
 export default function RegisterScreen() {
   const [email, setEmail] = useState('');
@@ -10,7 +10,7 @@ export default function RegisterScreen() {
 
   const handleRegister = async () => {
     try {
-      await api.post('/api/register', { email, password });
+      await authService.register(email, password);
       Alert.alert('Success', 'Account created successfully! Please log in.');
       router.replace('/login');
     } catch (error: any) {

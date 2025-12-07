@@ -1,6 +1,6 @@
 import { createContext, useContext, useState, useEffect, ReactNode } from 'react';
-import { api } from '@/infra/api';
-import { User, Session } from '@/types';
+import { authService } from '@/infra/services';
+import { User } from '@/types';
 
 interface AuthContextType {
   user: User | null;
@@ -18,7 +18,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   async function loadUser() {
     setLoading(true);
     try {
-      const session = await api.get<Session>('/api/auth/session');
+      const session = await authService.getSession();
       if (session) {
         setUser(session.user);
       } else {
@@ -41,7 +41,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   const signOut = async () => {
     try {
-      await api.post('/api/auth/logout');
+      await authService.logout();
     } catch (error) {
       console.error('Failed to logout on backend', error);
     } finally {

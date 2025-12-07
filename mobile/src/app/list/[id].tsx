@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { View, Text, TextInput, TouchableOpacity, StyleSheet, FlatList, Alert, ActivityIndicator } from 'react-native';
 import { useLocalSearchParams, useRouter, Stack } from 'expo-router';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { api } from '@/infra/api';
+import { listService } from '@/infra/services';
 import { List, ListItem } from '@/types';
 import { Ionicons } from '@expo/vector-icons';
 
@@ -17,12 +17,12 @@ export default function ListScreen() {
 
   const { data: list, isLoading, isError } = useQuery<List>({
     queryKey: ['list', id],
-    queryFn: () => api.get(`/api/lists/${id}`),
+    queryFn: () => listService.getById(id!),
   });
 
   const addItemMutation = useMutation({
     mutationFn: (newItem: Omit<ListItem, 'id' | 'createdAt' | 'updatedAt' | 'listId'>) =>
-      api.post(`/api/lists/${id}/items`, newItem),
+      listService.addItem(id!, newItem.name, newItem.quantity, newItem.value),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['list', id] });
       setNewItemName('');
@@ -33,7 +33,7 @@ export default function ListScreen() {
   });
 
   const deleteItemMutation = useMutation({
-    mutationFn: (itemId: string) => api.delete(`/api/lists/${id}/items/${itemId}`),
+    mutationFn: (itemId: string) => listService.deleteItem(id!, itemId),
     onSuccess: () => queryClient.invalidateQueries({ queryKey: ['list', id] }),
     onError: () => Alert.alert('Erro', 'Não foi possível remover o item.'),
   });

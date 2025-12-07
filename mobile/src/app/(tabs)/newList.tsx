@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { View, Text, TextInput, TouchableOpacity, StyleSheet, Alert, ActivityIndicator } from 'react-native';
 import { useRouter } from 'expo-router';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
-import { api } from '@/infra/api';
+import { listService } from '@/infra/services';
 import { List } from '@/types';
 
 export default function NewListScreen() {
@@ -12,7 +12,7 @@ export default function NewListScreen() {
 
   const { mutate: createList, isPending } = useMutation({
     mutationFn: (newBudget: number) => {
-      return api.post<List>('/api/lists', { budget: newBudget });
+      return listService.create(newBudget);
     },
     onSuccess: (data) => {
       queryClient.invalidateQueries({ queryKey: ['lists'] });

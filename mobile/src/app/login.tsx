@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { View, Text, TextInput, TouchableOpacity, StyleSheet, Image, Alert, ActivityIndicator } from 'react-native';
 import { useRouter } from 'expo-router';
 import { useAuth } from '@/hooks/useAuth';
-import { api } from '@/infra/api';
+import { authService } from '@/infra/services';
 
 export default function LoginScreen() {
   const [email, setEmail] = useState('');
@@ -14,7 +14,7 @@ export default function LoginScreen() {
   const handleLogin = async () => {
     setLoading(true);
     try {
-      await api.post('/api/auth/callback/credentials', { email, password });
+      await authService.login(email, password);
       await signIn();
       router.replace('/(tabs)/newList');
     } catch (error) {

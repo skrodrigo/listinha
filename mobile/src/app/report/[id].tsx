@@ -1,7 +1,7 @@
 import { View, Text, StyleSheet, FlatList, TouchableOpacity, Alert, ActivityIndicator } from 'react-native';
 import { useLocalSearchParams, Stack } from 'expo-router';
 import { useQuery } from '@tanstack/react-query';
-import { api } from '@/infra/api';
+import { listService } from '@/infra/services';
 import { List } from '@/types';
 
 export default function ReportScreen() {
@@ -9,7 +9,7 @@ export default function ReportScreen() {
 
   const { data: list, isLoading, isError } = useQuery<List>({
     queryKey: ['list', id],
-    queryFn: () => api.get(`/api/lists/${id}`),
+    queryFn: () => listService.getById(id!),
   });
 
   if (isLoading) {
