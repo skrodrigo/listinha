@@ -2,10 +2,10 @@
   "name": "hono",
   "type": "module",
   "scripts": {
-    "dev": "tsx watch src/server.ts",
+    "dev": "tsx watch src/index.ts",
     "build": "prisma generate && tsc",
-    "start": "NODE_ENV=production node dist/server.js",
-    "start:dev": "NODE_ENV=development tsx src/server.ts",
+    "start": "NODE_ENV=production node dist/index.js",
+    "start:dev": "NODE_ENV=development tsx src/index.ts",
     "type-check": "tsc --noEmit",
     "lint": "tsc --noEmit",
     "db:migrate": "prisma migrate dev",
