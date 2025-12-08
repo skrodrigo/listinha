@@ -1,44 +1,74 @@
-import { View, Text, FlatList, TouchableOpacity, ActivityIndicator } from 'react-native';
+import { View, Text, FlatList, TouchableOpacity, ActivityIndicator, StatusBar } from 'react-native';
 import { useQuery } from '@tanstack/react-query';
 import { listService } from '@/infra/services';
 import { List } from '@/types';
 import { useRouter } from 'expo-router';
+import { SafeAreaView } from 'react-native-safe-area-context';
 
 export default function HistoryScreen() {
   const router = useRouter();
-  const { data: lists, isLoading, isError } = useQuery<List[]>({
+  const {
+    data: lists,
+    isLoading,
+    isError,
+  } = useQuery<List[]>({
     queryKey: ['lists'],
     queryFn: () => listService.getAll(),
   });
 
   if (isLoading) {
-    return <ActivityIndicator className="flex-1" size="large" color="#FF6347" />;
+    return <ActivityIndicator className="flex-1" size="large" color="#18C260" />;
   }
 
   if (isError) {
-    return <Text className="flex-1 text-center self-center text-lg text-red-500">Erro ao carregar o histórico.</Text>;
+    return (
+      <Text className="flex-1 self-center text-center text-lg text-[#18C260]">
+        Erro ao carregar o histórico.
+      </Text>
+    );
   }
 
   const renderItem = ({ item }: { item: List }) => {
-    const totalSpent = item.items.reduce((acc, curr) => acc + curr.value * curr.quantity, 0);
+    const totalSpent = item.items.reduce((acc, item) => acc + item.value * item.quantity, 0);
+    const budget = item.budget ?? 0;
+    const ratio = budget > 0 ? totalSpent / budget : 0;
+    const budgetColor =
+      ratio < 0.7 ? '#18C260' : ratio < 0.95 ? '#92400E' : '#7F1D1D';
+
     return (
-      <TouchableOpacity className="flex-row justify-between items-center p-4 bg-white rounded-md mb-2" onPress={() => router.push(`/report/${item.id}`)}>
-        <Text className=" font-medium">{item.name || new Date(item.createdAt).toLocaleDateString('pt-BR')}</Text>
-        <Text>{totalSpent.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })}</Text>
+      <TouchableOpacity
+        className="mb-4 rounded-lg bg-white p-4 "
+        onPress={() => router.push(`/report/${item.id}`)}>
+        <View className="flex-row justify-between">
+          <Text className="flex-1 text-xl font-bold text-gray-800">{item.name}</Text>
+          <Text style={{ color: budgetColor }} className="text-lg font-semibold">
+            {totalSpent.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })}
+          </Text>
+        </View>
+        <View className="mt-2 flex-row justify-between">
+          <Text className="text-gray-500">{item.items.length} itens</Text>
+          <Text className="text-gray-500">
+            {new Date(item.createdAt).toLocaleDateString('pt-BR')}
+          </Text>
+        </View>
       </TouchableOpacity>
     );
   };
 
   return (
-    <View className="flex-1 bg-[#FFF0E5] p-5">
-      <Text className="text-3xl font-bold mb-5 text-gray-800 text-center">Histórico de Listas</Text>
+    <SafeAreaView className="flex-1 bg-[#f6f6f6] p-5">
+      <StatusBar />
+      <Text className="mb-5 text-center text-3xl text-gray-800">Histórico de Listas</Text>
       <FlatList
         data={lists}
         renderItem={renderItem}
         keyExtractor={(item) => item.id}
+        showsVerticalScrollIndicator={false}
         className="w-full"
-        ListEmptyComponent={<Text className="text-center mt-12  text-gray-500">Nenhuma lista encontrada.</Text>}
+        ListEmptyComponent={
+          <Text className="mt-12 text-center  text-gray-500">Nenhuma lista encontrada.</Text>
+        }
       />
-    </View>
+    </SafeAreaView>
   );
 }

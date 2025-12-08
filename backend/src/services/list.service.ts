@@ -1,5 +1,7 @@
 import { listRepository } from './../repositories/lists.repository.js';
 import type { CreateListData, UpdateListData, CreateListItemData, UpdateListItemData } from './../dtos/lists.dto.js';
+import PDFDocument from 'pdfkit';
+import stream from 'stream';
 
 class ListService {
   async getAllListsForUser(userId: string) {
@@ -43,6 +45,30 @@ class ListService {
     const item = await listRepository.findItemById(listId, itemId);
     if (!item) throw new Error('Item not found in the specified list');
     return listRepository.deleteItem(itemId);
+  }
+
+  async exportListToPdf(userId: string, listId: string): Promise<Buffer> {
+    const list = await this.getListById(userId, listId);
+
+    return new Promise((resolve, reject) => {
+      const doc = new PDFDocument();
+      const buffers: Buffer[] = [];
+
+      doc.on('data', buffers.push.bind(buffers));
+      doc.on('end', () => {
+        resolve(Buffer.concat(buffers));
+      });
+      doc.on('error', reject);
+
+      doc.fontSize(25).text(list.name ?? 'Lista sem nome', { align: 'center' });
+      doc.moveDown();
+
+      list.items.forEach(item => {
+        doc.fontSize(12).text(`${item.quantity}x ${item.name} - ${item.value.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })}`);
+      });
+
+      doc.end();
+    });
   }
 }
 

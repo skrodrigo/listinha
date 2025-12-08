@@ -13,7 +13,7 @@ export type AppVariables = {
 
 const app = new OpenAPIHono<{ Variables: AppVariables }>();
 
-app.get('/', (c) => c.json({ message: 'Listinha API up and running!' }));
+app.get('/', (c) => c.json({ message: 'sacolafacil API up and running!' }));
 
 // Rotas públicas de autenticação
 app.route('/api/auth', authRouter);
@@ -30,7 +30,7 @@ app.doc('/docs', {
   openapi: '3.0.0',
   info: {
     version: '1.0.0',
-    title: 'Listinha API',
+    title: 'sacolafacil API',
     description: 'API para gerenciar listas de compras com orçamento',
   },
   servers: [{ url: 'http://localhost:3000', description: 'Development' }],

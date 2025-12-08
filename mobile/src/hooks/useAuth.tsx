@@ -1,54 +1,46 @@
 import { createContext, useContext, useState, useEffect, ReactNode } from 'react';
 import { authService } from '@/infra/services';
-import { User } from '@/types';
 
 interface AuthContextType {
-  user: User | null;
+  isAuthenticated: boolean;
   signIn: () => Promise<void>;
   signOut: () => Promise<void>;
   loading: boolean;
 }
 
-const AuthContext = createContext<AuthContextType>({ user: null, signIn: async () => { }, signOut: async () => { }, loading: true });
+const AuthContext = createContext<AuthContextType>({ isAuthenticated: false, signIn: async () => { }, signOut: async () => { }, loading: true });
 
 export function AuthProvider({ children }: { children: ReactNode }) {
-  const [user, setUser] = useState<User | null>(null);
+  const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [loading, setLoading] = useState(true);
 
-  async function loadUser() {
-    setLoading(true);
-    try {
-      const session = await authService.getSession();
-      if (session) {
-        setUser(session.user);
-      } else {
-        setUser(null);
-      }
-    } catch (e) {
-      setUser(null);
-    } finally {
-      setLoading(false);
-    }
-  }
-
   useEffect(() => {
-    loadUser();
+    async function checkSession() {
+      try {
+        const sessionExists = await authService.getSession();
+        setIsAuthenticated(sessionExists);
+      } finally {
+        setLoading(false);
+      }
+    }
+    checkSession();
   }, []);
 
   const signIn = async () => {
-    await loadUser();
+    const sessionExists = await authService.getSession();
+    setIsAuthenticated(sessionExists);
   };
 
   const signOut = async () => {
     try {
       await authService.logout();
     } finally {
-      setUser(null);
+      setIsAuthenticated(false);
     }
   };
 
   return (
-    <AuthContext.Provider value={{ user, signIn, signOut, loading }}>
+    <AuthContext.Provider value={{ isAuthenticated, signIn, signOut, loading }}>
       {children}
     </AuthContext.Provider>
   );
@@ -57,4 +49,3 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 export const useAuth = () => {
   return useContext(AuthContext);
 };
-

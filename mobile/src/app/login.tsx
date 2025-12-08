@@ -1,7 +1,17 @@
 import { useState } from 'react';
-import { View, Text, TextInput, TouchableOpacity, Image, ActivityIndicator, KeyboardAvoidingView, Platform } from 'react-native';
+import {
+  View,
+  TouchableOpacity,
+  ActivityIndicator,
+  KeyboardAvoidingView,
+  Platform,
+  Image,
+  TextInput,
+  Text,
+  StyleSheet,
+} from 'react-native';
 import { toast } from 'sonner-native';
-import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
 import { useAuth } from '@/hooks/useAuth';
 import { authService } from '@/infra/services';
@@ -14,42 +24,47 @@ export default function LoginScreen() {
   const { signIn } = useAuth();
 
   const handleLogin = async () => {
+    if (!email.trim() || !password.trim()) {
+      toast.error('Dados inválidos', {
+        description: 'Informe e-mail e senha para continuar.',
+      });
+      return;
+    }
+
     setLoading(true);
     try {
-      await authService.login(email, password);
+      await authService.login({ email, password });
       await signIn();
       router.replace('/(tabs)/newList');
     } catch (error: any) {
-      const errorMessage = error.response?.data?.error || 'E-mail ou senha inválidos.';
+      const rawError = error?.response?.data?.error;
+      const errorMessage =
+        typeof rawError === 'string'
+          ? rawError
+          : 'E-mail ou senha inválidos.';
+
       toast.error('Falha no Login', { description: errorMessage });
     } finally {
       setLoading(false);
     }
   };
 
-  const insets = useSafeAreaInsets();
-
   return (
-    <View style={{ flex: 1, backgroundColor: '#FFF0E5', paddingTop: insets.top, paddingBottom: insets.bottom }}>
+    <SafeAreaView style={styles.container}>
       <KeyboardAvoidingView
         behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
-        style={{ flex: 1 }}
-      >
-        <View
-          style={{
-            flexGrow: 1,
-            justifyContent: 'center',
-            alignItems: 'center',
-            paddingHorizontal: 20,
-          }}
-        >
-          <Image source={require('../../assets/logo.png')} style={{ width: 100, height: 100, marginBottom: 40, borderRadius: 10 }} />
-          <Text style={{ fontSize: 32, fontWeight: 'bold', marginBottom: 40, color: '#1F2937' }}>Login</Text>
+        style={{ flex: 1 }}>
+        <View style={styles.content}>
+          <Image
+            source={require('../../assets/logo.png')}
+            style={styles.logo}
+          />
+          <Text style={styles.title}>Login</Text>
 
           <TextInput
-            style={{ width: '100%', backgroundColor: '#E5E7EB', borderRadius: 8, padding: 16, marginBottom: 16, fontSize: 16 }}
-            placeholder="rodrigoa0987@gmail.com"
-            placeholderTextColor="#A9A9A9"
+            style={styles.input}
+            placeholder="seuemail@gmail.com"
+            placeholderTextColor="#A3A3A3"
             value={email}
             onChangeText={setEmail}
             keyboardType="email-address"
@@ -57,30 +72,85 @@ export default function LoginScreen() {
           />
 
           <TextInput
-            style={{ width: '100%', backgroundColor: '#E5E7EB', borderRadius: 8, padding: 16, marginBottom: 24, fontSize: 16 }}
-            placeholder="************"
-            placeholderTextColor="#A9A9A9"
+            style={styles.input}
+            placeholder="********"
+            placeholderTextColor="#A3A3A3"
             value={password}
             onChangeText={setPassword}
             secureTextEntry
           />
 
-          <TouchableOpacity
-            style={{ width: '100%', backgroundColor: '#1F2937', borderRadius: 8, padding: 16, alignItems: 'center', marginBottom: 16 }}
-            onPress={handleLogin}
-            disabled={loading}
-          >
-            {loading ? <ActivityIndicator color="#fff" /> : <Text style={{ color: '#FFFFFF', fontSize: 16, fontWeight: 'bold' }}>Entrar</Text>}
+          <TouchableOpacity style={styles.button} onPress={handleLogin} disabled={loading}>
+            {loading ? (
+              <ActivityIndicator color="#fff" />
+            ) : (
+              <Text style={styles.buttonText}>Entrar</Text>
+            )}
           </TouchableOpacity>
 
-          <View style={{ flexDirection: 'row' }}>
-            <Text style={{ color: '#1F2937', fontSize: 14 }}>Não tem conta? </Text>
+          <View style={styles.footer}>
+            <Text style={styles.footerText}>Não tem conta? </Text>
             <TouchableOpacity onPress={() => router.push('/register')}>
-              <Text style={{ fontWeight: 'bold', color: '#1F2937' }}>Criar conta</Text>
+              <Text style={styles.link}>Criar conta</Text>
             </TouchableOpacity>
           </View>
         </View>
       </KeyboardAvoidingView>
-    </View>
+    </SafeAreaView>
   );
 }
+
+const styles = StyleSheet.create({
+  container: {
+    flex: 1,
+    backgroundColor: '#f6f6f6',
+  },
+  content: {
+    flexGrow: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    paddingHorizontal: 20,
+  },
+  logo: {
+    width: 100,
+    height: 100,
+    marginBottom: 40,
+    borderRadius: 10,
+  },
+  title: {
+    fontSize: 32,
+    marginBottom: 40,
+    color: '#1f2937',
+  },
+  input: {
+    width: '100%',
+    backgroundColor: '#E5E5E5',
+    color: '#1f2937',
+    borderRadius: 8,
+    padding: 16,
+    marginBottom: 12,
+    fontSize: 16,
+  },
+  button: {
+    width: '100%',
+    backgroundColor: '#18C260',
+    borderRadius: 8,
+    padding: 16,
+    alignItems: 'center',
+    marginBottom: 16,
+  },
+  buttonText: {
+    color: '#FFFFFF',
+    fontSize: 16,
+  },
+  footer: {
+    flexDirection: 'row',
+  },
+  footerText: {
+    color: '#A3A3A3',
+    fontSize: 14,
+  },
+  link: {
+    color: '#18C260',
+  },
+});

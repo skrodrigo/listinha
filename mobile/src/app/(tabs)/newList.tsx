@@ -1,23 +1,38 @@
-import { useState } from 'react';
-import { View, Text, TextInput, TouchableOpacity, ActivityIndicator } from 'react-native';
+import { useState, useEffect } from 'react';
+import {
+  View,
+  TouchableOpacity,
+  ActivityIndicator,
+  Keyboard,
+  TouchableWithoutFeedback,
+  StyleSheet,
+  Text,
+  TextInput,
+} from 'react-native';
 import { toast } from 'sonner-native';
 import { useRouter } from 'expo-router';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { listService } from '@/infra/services';
-import { List } from '@/types';
+import { Ionicons } from '@expo/vector-icons';
+import * as Haptics from 'expo-haptics';
+import CurrencyInput from 'react-native-currency-input';
 
 export default function NewListScreen() {
-  const [budget, setBudget] = useState('');
+  const [name, setName] = useState('');
+  const [budget, setBudget] = useState<number | null>(null);
+  const [newListId, setNewListId] = useState<string | null>(null);
   const router = useRouter();
   const queryClient = useQueryClient();
 
   const { mutate: createList, isPending } = useMutation({
-    mutationFn: (newBudget: number) => {
-      return listService.create(newBudget);
-    },
+    mutationFn: (data: { name: string; budget: number }) => listService.create(data),
     onSuccess: (data) => {
       queryClient.invalidateQueries({ queryKey: ['lists'] });
-      router.push(`/list/${data.id}`);
+      if (data?.id) {
+        setNewListId(data.id);
+      } else {
+        toast.error('Erro de Navegação', { description: 'A API não retornou um ID para a lista.' });
+      }
     },
     onError: (error: any) => {
       const errorMessage = error.response?.data?.error || 'Não foi possível criar a lista.';
@@ -25,42 +40,106 @@ export default function NewListScreen() {
     },
   });
 
+  useEffect(() => {
+    if (newListId) {
+      router.replace(`/list/${newListId}`);
+    }
+  }, [newListId]);
+
   const handleStartList = () => {
-    const budgetValue = parseFloat(budget.replace(/[^\d,]/g, '').replace(',', '.'));
-    if (isNaN(budgetValue) || budgetValue <= 0) {
-      toast.error('Orçamento Inválido', { description: 'Por favor, insira um valor de orçamento válido.' });
+    const budgetValue = budget ?? 0;
+    if (!name.trim() || budgetValue <= 0) {
+      toast.error('Dados Inválidos', {
+        description: 'Por favor, preencha o nome e o orçamento da lista.',
+      });
       return;
     }
-    createList(budgetValue);
-  };
-
-  const formatCurrency = (value: string) => {
-    const numericValue = value.replace(/\D/g, '');
-    if (!numericValue) return '';
-    const floatValue = parseFloat(numericValue) / 100;
-    return floatValue.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
+    createList({ name, budget: budgetValue });
   };
 
   return (
-    <View className="flex-1 bg-[#FFF0E5] items-center justify-center p-5">
-      <Text className="text-3xl font-bold mb-10 text-gray-800 text-center">Qual o seu orçamento?</Text>
+    <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
+      <View style={styles.container}>
+        <Text style={styles.title}>Crie uma nova lista</Text>
 
-      <TextInput
-        className="w-full bg-gray-200 rounded-lg p-5 mb-5 text-2xl text-center font-bold"
-        placeholder="R$ 0,00"
-        placeholderTextColor="#A9A9A9"
-        value={formatCurrency(budget)}
-        onChangeText={(text) => setBudget(text.replace(/\D/g, ''))}
-        keyboardType="numeric"
-      />
+        <TextInput
+          style={styles.input}
+          placeholder="Nome da lista"
+          placeholderTextColor="#A3A3A3"
+          value={name}
+          onChangeText={setName}
+        />
 
-      <TouchableOpacity className="w-full bg-red-500 rounded-lg p-4 items-center" onPress={handleStartList} disabled={isPending}>
-        {isPending ? (
-          <ActivityIndicator color="#fff" />
-        ) : (
-          <Text className="text-white text-lg font-bold">Iniciar Lista de Compras →</Text>
-        )}
-      </TouchableOpacity>
-    </View>
+        <CurrencyInput
+          value={budget}
+          onChangeValue={(value) => {
+            setBudget(value);
+            Haptics.selectionAsync();
+          }}
+          style={styles.input}
+          prefix="R$ "
+          delimiter="."
+          separator=","
+          precision={2}
+          placeholder="R$ 0,00"
+          placeholderTextColor="#A3A3A3"
+        />
+
+        <TouchableOpacity
+          style={styles.button}
+          onPress={handleStartList}
+          disabled={isPending}
+        >
+          {isPending ? (
+            <ActivityIndicator color="#fff" />
+          ) : (
+            <>
+              <Text style={styles.buttonText}>Iniciar Nova Lista</Text>
+              <Ionicons name="arrow-forward" size={16} color="white" />
+            </>
+          )}
+        </TouchableOpacity>
+      </View>
+    </TouchableWithoutFeedback>
   );
 }
+
+const styles = StyleSheet.create({
+  container: {
+    flex: 1,
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: '#f6f6f6',
+    padding: 20,
+  },
+  title: {
+    fontSize: 32,
+    color: '#1f2937',
+    textAlign: 'center',
+    marginBottom: 40,
+  },
+  input: {
+    width: '100%',
+    backgroundColor: '#E5E5E5',
+    color: '#1f2937',
+    borderRadius: 8,
+    padding: 20,
+    marginBottom: 20,
+    fontSize: 24,
+    textAlign: 'center',
+  },
+  button: {
+    flexDirection: 'row',
+    width: '100%',
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: '#18C260',
+    borderRadius: 8,
+    padding: 16,
+  },
+  buttonText: {
+    fontSize: 18,
+    color: '#FFFFFF',
+    marginRight: 8,
+  },
+});

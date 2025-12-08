@@ -1,16 +1,18 @@
 {
   "expo": {
-    "name": "listinha",
-    "slug": "listinha",
+    "name": "sacolafacil",
+    "slug": "sacolafacil",
     "version": "1.0.0",
-    "scheme": "listinha",
+    "scheme": "sacolafacil",
     "web": {
       "favicon": "./assets/favlogo.png"
     },
     "experiments": {
       "tsconfigPaths": true
     },
-    "plugins": [],
+    "plugins": [
+      "expo-secure-store"
+    ],
     "orientation": "portrait",
     "icon": "./assets/logo.png",
     "userInterfaceStyle": "light",

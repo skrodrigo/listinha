@@ -12,8 +12,8 @@ export const listService = {
     return response.data;
   },
 
-  async create(budget: number, name?: string): Promise<List> {
-    const response = await api.post<List>('/api/lists', { budget, name });
+  async create(data: { budget: number; name?: string }): Promise<List> {
+    const response = await api.post<List>('/api/lists', data);
     return response.data;
   },
 
@@ -34,7 +34,13 @@ export const listService = {
     return response.data;
   },
 
-  async updateItem(listId: string, itemId: string, name: string, quantity: number, value: number): Promise<void> {
+  async updateItem(
+    listId: string,
+    itemId: string,
+    name: string,
+    quantity: number,
+    value: number
+  ): Promise<void> {
     await api.patch(`/api/lists/${listId}/items/${itemId}`, {
       name,
       quantity,

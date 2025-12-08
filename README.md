@@ -1,4 +1,4 @@
-# 🛒 Listinha - Gerenciador de Listas de Compras
+# 🛒 Sacola Fácil - Gerenciador de Listas de Compras
 
 Um aplicativo mobile completo para gerenciar listas de compras com orçamento, construído com um backend moderno e uma arquitetura limpa.
 
@@ -16,8 +16,6 @@ Um aplicativo mobile completo para gerenciar listas de compras com orçamento, c
 ---
 
 ## 🎯 Visão Geral
-
-**Listinha** é um monorepo contendo:
 
 -   **`backend`**: Uma API RESTful construída com **Hono** e **Prisma**, seguindo princípios de Clean Architecture. Fornece endpoints para autenticação de usuários e gerenciamento completo de listas de compras.
 -   **`mobile`**: Um aplicativo **React Native** (com Expo) que consome a API do backend, oferecendo uma interface de usuário intuitiva para gerenciar as listas.
