@@ -53,6 +53,13 @@ export default function LoginScreen() {
 
   const handleOfflineMode = async () => {
     await setOfflineMode(true);
+    toast.success('Modo Offline Ativado', {
+      description: 'Você pode usar o app sem conexão.',
+    });
+    // Navigate after a short delay to ensure state is updated
+    setTimeout(() => {
+      router.replace('/(tabs)/newList');
+    }, 100);
   };
 
   return (

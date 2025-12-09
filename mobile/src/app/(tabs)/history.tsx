@@ -47,26 +47,33 @@ export default function HistoryScreen() {
 
     return (
       <TouchableOpacity
-        className="mb-4 rounded-lg bg-white p-4 "
+        className="mb-4 rounded-lg bg-white p-4"
         onPress={() => router.push(`/report/${item.id}`)}>
-        <View className="flex-row items-center justify-between">
-          <View className="flex-row items-center">
-            <Text className="flex-1 text-xl  text-gray-800">{item.name}</Text>
-            {item.isOffline && (
-              <View className="ml-2 rounded-md bg-gray-200 px-2 py-1">
-                <Text className="text-xs text-gray-500">OFFLINE</Text>
-              </View>
-            )}
+        <View className="flex-col gap-3">
+          <View className="flex-row items-center justify-between gap-2">
+            <View className="flex-1 flex-row items-center gap-2">
+              <Text className="flex-1 text-lg font-medium text-gray-800" numberOfLines={2}>
+                {item.name}
+              </Text>
+              {item.isOffline && (
+                <View className="rounded-md bg-gray-200 px-2 py-1">
+                  <Text className="text-xs text-gray-500">OFFLINE</Text>
+                </View>
+              )}
+            </View>
+            <Text
+              style={{ color: budgetColor }}
+              className="text-base font-semibold"
+              numberOfLines={1}>
+              {totalSpent.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })}
+            </Text>
           </View>
-          <Text style={{ color: budgetColor }} className="text-lg ">
-            {totalSpent.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })}
-          </Text>
-        </View>
-        <View className="mt-2 flex-row justify-between">
-          <Text className="text-gray-500">{item.items.length} itens</Text>
-          <Text className="text-gray-500">
-            {new Date(item.createdAt).toLocaleDateString('pt-BR')}
-          </Text>
+          <View className="flex-row justify-between">
+            <Text className="text-sm text-gray-500">{item.items.length} itens</Text>
+            <Text className="text-sm text-gray-500">
+              {new Date(item.createdAt).toLocaleDateString('pt-BR')}
+            </Text>
+          </View>
         </View>
       </TouchableOpacity>
     );

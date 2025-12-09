@@ -1,10 +1,12 @@
 import { Tabs, Redirect } from 'expo-router';
 import { useAuth } from '@/hooks/useAuth';
+import { useConnectivity } from '@/context/ConnectivityContext';
 import { ActivityIndicator, View } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 
 export default function TabsLayout() {
   const { isAuthenticated, loading, signOut } = useAuth();
+  const { setOfflineMode } = useConnectivity();
 
   if (loading) {
     return (
@@ -77,6 +79,7 @@ export default function TabsLayout() {
         listeners={{
           tabPress: (e) => {
             e.preventDefault();
+            setOfflineMode(false);
             signOut();
           },
         }}

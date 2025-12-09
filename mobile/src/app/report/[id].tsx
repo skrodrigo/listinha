@@ -1,18 +1,22 @@
 import { useState } from 'react';
-import { View, Text, FlatList, TouchableOpacity, ActivityIndicator } from 'react-native';
+import { View, Text, FlatList, TouchableOpacity, ActivityIndicator, Modal, StyleSheet, TouchableWithoutFeedback } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import * as Print from 'expo-print';
 import { shareAsync } from 'expo-sharing';
-import { useLocalSearchParams } from 'expo-router';
-import { useQuery } from '@tanstack/react-query';
+import { useLocalSearchParams, useRouter } from 'expo-router';
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { listService } from '@/infra/services';
 import { offlineListService } from '@/infra/services/offline';
 import { List } from '@/types';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import { toast } from 'sonner-native';
 
 export default function ReportScreen() {
   const { id } = useLocalSearchParams<{ id: string }>();
   const [isExporting, setIsExporting] = useState(false);
+  const [isDeleteModalVisible, setDeleteModalVisible] = useState(false);
+  const router = useRouter();
+  const queryClient = useQueryClient();
 
   const {
     data: list,
@@ -27,6 +31,35 @@ export default function ReportScreen() {
       return listService.getById(id!);
     },
   });
+
+  const deleteListMutation = useMutation({
+    mutationFn: async () => {
+      if (id?.startsWith('offline-')) {
+        // Delete from offline storage
+        await offlineListService.deleteList(id);
+      } else {
+        // Delete from API
+        await listService.delete(id!);
+      }
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['lists'] });
+      toast.success('Lista deletada com sucesso');
+      router.replace('/(tabs)/history');
+    },
+    onError: () => {
+      toast.error('Erro ao deletar lista');
+    },
+  });
+
+  const handleDeleteList = () => {
+    setDeleteModalVisible(true);
+  };
+
+  const handleConfirmDelete = () => {
+    setDeleteModalVisible(false);
+    deleteListMutation.mutate();
+  };
 
   if (isLoading) {
     return <ActivityIndicator className="flex-1" size="large" color="#18C260" />;
@@ -79,6 +112,40 @@ export default function ReportScreen() {
 
   return (
     <SafeAreaView edges={['left', 'right', 'bottom']} className="flex-1 bg-[#f6f6f6] p-5">
+      <Modal
+        animationType="fade"
+        transparent={true}
+        visible={isDeleteModalVisible}
+        onRequestClose={() => setDeleteModalVisible(false)}>
+        <TouchableWithoutFeedback onPress={() => setDeleteModalVisible(false)}>
+          <View style={styles.modalOverlay}>
+            <TouchableWithoutFeedback>
+              <View style={styles.modalView}>
+                <Text style={styles.cardTitle}>Deletar Lista</Text>
+                <Text style={styles.confirmText}>Tem certeza que deseja deletar esta lista? Esta ação não pode ser desfeita.</Text>
+                <View style={styles.confirmButtonContainer}>
+                  <TouchableOpacity
+                    style={[styles.confirmButton, styles.cancelButton]}
+                    onPress={() => setDeleteModalVisible(false)}>
+                    <Text style={styles.confirmButtonText}>Cancelar</Text>
+                  </TouchableOpacity>
+                  <TouchableOpacity
+                    style={[styles.confirmButton, styles.deleteButton]}
+                    onPress={handleConfirmDelete}
+                    disabled={deleteListMutation.isPending}>
+                    {deleteListMutation.isPending ? (
+                      <ActivityIndicator color="#fff" />
+                    ) : (
+                      <Text style={styles.confirmButtonText}>Deletar</Text>
+                    )}
+                  </TouchableOpacity>
+                </View>
+              </View>
+            </TouchableWithoutFeedback>
+          </View>
+        </TouchableWithoutFeedback>
+      </Modal>
+
       <View className="mb-4 rounded-lg bg-gray-200 p-5">
         <Text className=" text-gray-600">Total Gastos</Text>
         <Text className="mt-1 text-3xl  text-[#18C260]">
@@ -110,20 +177,91 @@ export default function ReportScreen() {
         className="w-full"
       />
 
-      <TouchableOpacity
-        className="mt-5 items-center rounded-lg bg-[#18C260] p-4"
-        onPress={handleExport}
-        disabled={isExporting || list.isOffline}
-      >
-        {isExporting ? (
-          <ActivityIndicator color="#1f2937" />
-        ) : (
+      <View className="mt-5 gap-3">
+        <TouchableOpacity
+          className="items-center rounded-lg bg-[#18C260] p-4"
+          onPress={handleExport}
+          disabled={isExporting}
+        >
+          {isExporting ? (
+            <ActivityIndicator color="#1f2937" />
+          ) : (
+            <View className='flex-row gap-2 justify-center items-center'>
+              <Ionicons name='document-text' size={16} color='#1f2937' />
+              <Text className="text-xl text-gray-800">Exportar</Text>
+            </View>
+          )}
+        </TouchableOpacity>
+
+        <TouchableOpacity
+          className="items-center rounded-lg bg-red-500 p-4"
+          onPress={handleDeleteList}
+        >
           <View className='flex-row gap-2 justify-center items-center'>
-            <Ionicons name='document-text' size={16} color='#1f2937' />
-            <Text className="text-xl text-gray-800">Exportar</Text>
+            <Ionicons name='trash' size={16} color='#fff' />
+            <Text className="text-xl text-white">Deletar Lista</Text>
           </View>
-        )}
-      </TouchableOpacity>
+        </TouchableOpacity>
+      </View>
     </SafeAreaView>
   );
 }
+
+const styles = StyleSheet.create({
+  modalOverlay: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    backgroundColor: 'rgba(0, 0, 0, 0.5)',
+  },
+  modalView: {
+    width: '90%',
+    minHeight: 220,
+    backgroundColor: '#E5E5E5',
+    borderRadius: 10,
+    padding: 20,
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    shadowColor: '#000',
+    shadowOffset: {
+      width: 0,
+      height: 2,
+    },
+    shadowOpacity: 0.25,
+    shadowRadius: 4,
+    elevation: 5,
+  },
+  cardTitle: {
+    marginBottom: 16,
+    fontSize: 22,
+    color: '#1f2937',
+  },
+  confirmText: {
+    marginBottom: 20,
+    fontSize: 18,
+    textAlign: 'center',
+    color: '#1f2937',
+  },
+  confirmButtonContainer: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    width: '100%',
+  },
+  confirmButton: {
+    flex: 1,
+    padding: 12,
+    borderRadius: 10,
+    alignItems: 'center',
+    marginHorizontal: 5,
+  },
+  cancelButton: {
+    backgroundColor: '#6b7280',
+  },
+  deleteButton: {
+    backgroundColor: '#DC2626',
+  },
+  confirmButtonText: {
+    color: '#FFFFFF',
+    fontSize: 16,
+  },
+});
