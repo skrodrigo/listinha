@@ -31,6 +31,12 @@
       "adaptiveIcon": {
         "foregroundImage": "./assets/adaptive-icon.png",
         "backgroundColor": "#ffffff"
+      },
+      "package": "com.skrodrigo.sacolafacil"
+    },
+    "extra": {
+      "eas": {
+        "projectId": "e7e4861a-2276-44d0-8655-30a38e4cb80f"
       }
     }
   }
